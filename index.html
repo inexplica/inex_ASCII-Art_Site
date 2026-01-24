@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Art Конвертер</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3em;
+            background: linear-gradient(45deg, #00f5ff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            height: calc(100vh - 200px);
+            max-height: calc(100vh - 200px);
+            align-items: start;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            color: #00f5ff;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-group select,
+        .control-group input[type="range"] {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 8px;
+            color: #e0e0e0;
+            padding: 10px;
+            font-size: 0.95em;
+        }
+
+        .control-group select {
+            cursor: pointer;
+        }
+
+        .control-group select option {
+            background: #0a0e27;
+        }
+
+        .range-value {
+            display: inline-block;
+            background: rgba(0, 245, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-left: 10px;
+            font-size: 0.85em;
+            color: #00f5ff;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .upload-zone {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(0, 245, 255, 0.4);
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone:hover {
+            border-color: #00f5ff;
+            background: rgba(0, 245, 255, 0.1);
+            box-shadow: 0 0 30px rgba(0, 245, 255, 0.2);
+        }
+
+        .upload-zone.dragover {
+            border-color: #ff00ff;
+            background: rgba(255, 0, 255, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .upload-subtext {
+            color: #888;
+            font-size: 0.85em;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #00f5ff, #0080ff);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85em;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 245, 255, 0.4);
+        }
+
+        .main-right {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            max-height: 100%;
+            height: 100%;
+            width: 100%;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .output-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            max-height: 100%;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .output-container h3 {
+            color: #00f5ff;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+
+        #asciiOutput {
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            overflow: auto;
+            background: #000;
+            padding: 20px;
+            border-radius: 8px;
+            line-height: 1.1;
+            color: #0f0;
+            font-size: 8px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .video-controls {
+            display: none;
+        }
+
+        .video-controls.active {
+            display: block;
+        }
+
+        .loader {
+            border: 3px solid rgba(0, 245, 255, 0.3);
+            border-top: 3px solid #00f5ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                height: auto;
+                max-height: none;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ASCII ART КОНВЕРТЕР</h1>
+            <p class="subtitle">Преобразуйте изображения и видео в текстовое искусство</p>
+        </header>
+
+        <div class="main-content">
+            <aside class="controls">
+                <div class="control-group">
+                    <label>Ширина (символов): <span class="range-value" id="widthValue">120</span></label>
+                    <input type="range" id="widthSlider" min="20" max="300" value="120">
+                </div>
+
+                <div class="control-group">
+                    <label>Набор символов:</label>
+                    <select id="charsetSelect">
+                        <option value="minimal">Минимальный ( .:-+*#@)</option>
+                        <option value="simple">Простой ( .,:;!|/)</option>
+                        <option value="standard" selected>Стандартный</option>
+                        <option value="detailed">Детализированный</option>
+                        <option value="extended">Расширенный</option>
+                        <option value="blocks">Только блоки</option>
+                        <option value="numbers">Цифры (0-9)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Цвет ASCII:</label>
+                    <input type="color" id="colorPicker" value="#00ff00" style="width: 100%; height: 40px; cursor: pointer; border-radius: 8px;">
+                </div>
+
+                <div class="control-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="invertCheck">
+                        <label for="invertCheck">Инверсия</label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="colorCheck">
+                        <label for="colorCheck">Цветной ASCII</label>
+                    </div>
+                </div>
+
+                <div class="control-group video-controls" id="videoControls">
+                    <label>FPS: <span class="range-value" id="fpsValue">10</span></label>
+                    <input type="range" id="fpsSlider" min="1" max="30" value="10">
+                </div>
+
+                <div class="buttons">
+                    <button onclick="convertImage()">Конвертировать</button>
+                    <button onclick="downloadTxt()">Скачать TXT</button>
+                    <button onclick="downloadImage()">Скачать PNG</button>
+                </div>
+            </aside>
+
+            <div class="main-right">
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Перетащите файл или кликните для выбора</div>
+                    <div class="upload-subtext">Поддерживаются: JPG, PNG, GIF, MP4, WebM</div>
+                    <input type="file" id="fileInput" accept="image/*,video/*">
+                </div>
+
+                <div class="loader" id="loader"></div>
+
+                <div class="output-container">
+                    <h3>Результат</h3>
+                    <div id="asciiOutput">Загрузите изображение или видео для начала работы...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const charSets = {
+            minimal: ' .:-=+*#%@',
+            simple: ' .,:;!|/~+*#@',
+            standard: ' .",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
+            detailed: ' .`^",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
+            extended: ' .`^",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
+            blocks: ' ░▒▓█',
+            numbers: ' 123456789'
+        };
+
+        let currentImage = null;
+        let currentVideo = null;
+        let animationFrame = null;
+
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        document.getElementById('widthSlider').addEventListener('input', e => {
+            document.getElementById('widthValue').textContent = e.target.value;
+            if (currentImage || currentVideo) convertImage();
+        });
+        document.getElementById('fpsSlider').addEventListener('input', e => {
+            document.getElementById('fpsValue').textContent = e.target.value;
+            if (currentVideo) convertVideo();
+        });
+        document.getElementById('charsetSelect').addEventListener('change', () => {
+            if (currentImage || currentVideo) convertImage();
+        });
+        document.getElementById('invertCheck').addEventListener('change', () => {
+            if (currentImage || currentVideo) convertImage();
+        });
+        document.getElementById('colorCheck').addEventListener('change', () => {
+            if (currentImage || currentVideo) convertImage();
+        });
+        document.getElementById('colorPicker').addEventListener('input', e => {
+            if (!document.getElementById('colorCheck').checked) {
+                document.getElementById('asciiOutput').style.color = e.target.value;
+            }
+        });
+
+        const uploadZone = document.getElementById('uploadZone');
+        uploadZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        }
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            
+            if (file.type.startsWith('image/')) {
+                reader.onload = e => {
+                    const img = new Image();
+                    img.onload = () => {
+                        currentImage = img;
+                        currentVideo = null;
+                        document.getElementById('videoControls').classList.remove('active');
+                        convertImage();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else if (file.type.startsWith('video/')) {
+                reader.onload = e => {
+                    const video = document.createElement('video');
+                    video.src = e.target.result;
+                    video.muted = true;
+                    video.onloadeddata = () => {
+                        document.getElementById('videoControls').classList.add('active');
+                        currentVideo = video;
+                        currentImage = null;
+                        video.play();
+                        convertVideo();
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function imageToAscii(img, width, charset, invert, colored) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const aspectRatio = img.height / img.width;
+            const height = Math.floor(width * aspectRatio * 0.55);
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            const imageData = ctx.getImageData(0, 0, width, height);
+            let ascii = '';
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const i = (y * width + x) * 4;
+                    const r = imageData.data[i];
+                    const g = imageData.data[i + 1];
+                    const b = imageData.data[i + 2];
+                    
+                    const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+                    const finalBrightness = invert ? 255 - brightness : brightness;
+                    const charIndex = Math.floor((finalBrightness / 255) * (charset.length - 1));
+                    const char = charset[charIndex];
+                    
+                    if (colored) {
+                        ascii += '<span style="color:rgb(' + r + ',' + g + ',' + b + ')">' + char + '</span>';
+                    } else {
+                        ascii += char;
+                    }
+                }
+                ascii += '\n';
+            }
+            
+            return ascii;
+        }
+
+        function convertImage() {
+            if (!currentImage && !currentVideo) return;
+            
+            document.getElementById('loader').classList.add('active');
+            
+            setTimeout(() => {
+                const width = parseInt(document.getElementById('widthSlider').value);
+                const charsetType = document.getElementById('charsetSelect').value;
+                const charset = charSets[charsetType];
+                const invert = document.getElementById('invertCheck').checked;
+                const colored = document.getElementById('colorCheck').checked;
+                
+                const source = currentImage || currentVideo;
+                const ascii = imageToAscii(source, width, charset, invert, colored);
+                
+                const output = document.getElementById('asciiOutput');
+                if (colored) {
+                    output.innerHTML = ascii;
+                } else {
+                    output.textContent = ascii;
+                }
+                
+                document.getElementById('loader').classList.remove('active');
+            }, 100);
+        }
+
+        function convertVideo() {
+            if (!currentVideo) return;
+            
+            const fps = parseInt(document.getElementById('fpsSlider').value);
+            const interval = 1000 / fps;
+            
+            function animate() {
+                convertImage();
+                animationFrame = setTimeout(animate, interval);
+            }
+            
+            if (animationFrame) clearTimeout(animationFrame);
+            animate();
+        }
+
+        function downloadTxt() {
+            const ascii = document.getElementById('asciiOutput').textContent;
+            const blob = new Blob([ascii], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ascii-art.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadImage() {
+            const output = document.getElementById('asciiOutput');
+            const colored = document.getElementById('colorCheck').checked;
+            const customColor = document.getElementById('colorPicker').value;
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const fontSize = 10;
+            const lineHeight = fontSize * 1.1;
+            ctx.font = fontSize + 'px Courier New';
+            
+            let lines;
+            if (colored) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = output.innerHTML;
+                lines = tempDiv.textContent.split('\n');
+            } else {
+                lines = output.textContent.split('\n');
+            }
+            
+            let maxWidth = 0;
+            lines.forEach(line => {
+                const width = ctx.measureText(line).width;
+                if (width > maxWidth) maxWidth = width;
+            });
+            
+            canvas.width = maxWidth + 20;
+            canvas.height = lines.length * lineHeight + 20;
+            
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.font = fontSize + 'px Courier New';
+            
+            if (colored) {
+                const spans = output.querySelectorAll('span');
+                let charIndex = 0;
+                let x = 10;
+                let y = lineHeight;
+                
+                spans.forEach(span => {
+                    const char = span.textContent;
+                    const color = span.style.color;
+                    
+                    if (char === '\n' || (charIndex > 0 && lines[0] && charIndex % lines[0].length === 0)) {
+                        y += lineHeight;
+                        x = 10;
+                    }
+                    
+                    ctx.fillStyle = color || customColor;
+                    ctx.fillText(char, x, y);
+                    x += ctx.measureText(char).width;
+                    charIndex++;
+                });
+            } else {
+                ctx.fillStyle = customColor;
+                lines.forEach((line, i) => {
+                    ctx.fillText(line, 10, (i + 1) * lineHeight);
+                });
+            }
+            
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'ascii-art.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+    </script>
+</body>
+</html>
