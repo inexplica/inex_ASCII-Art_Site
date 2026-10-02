@@ -4,105 +4,458 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASCII Art Конвертер</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0e27;
-            color: #e0e0e0;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #d0d0d0;
             min-height: 100vh;
             padding: 20px;
             overflow-x: hidden;
+            cursor: none;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .cursor-dot, .cursor-ring {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            border-radius: 50%;
+            top: 0; left: 0;
+        }
+        .cursor-dot {
+            width: 8px; height: 8px;
+            background: #b0b8c0;
+            box-shadow: 0 0 10px rgba(176, 184, 192, 0.6);
+            transform: translate(-50%, -50%);
+        }
+        .cursor-ring {
+            width: 36px; height: 36px;
+            border: 2px solid rgba(176, 184, 192, 0.4);
+            transform: translate(-50%, -50%);
+            transition: transform 0.15s ease, width 0.2s, height 0.2s, border-color 0.2s;
+        }
+        .cursor-ring.hover {
+            width: 60px; height: 60px;
+            border-color: #8a9ba8;
+        }
+        .cursor-trail {
+            position: fixed;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #8a9ba8;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 8px rgba(138, 155, 168, 0.6);
+            opacity: 0.6;
+        }
+
+        .animated-gradient-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -10;
+            background: linear-gradient(135deg, #1a1a1a, #1e1e22, #1a1e1e, #1a1a1a);
+            background-size: 400% 400%;
+            animation: bgGradient 18s ease infinite;
+        }
+        @keyframes bgGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .mesh-bg {
+            position: fixed;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            z-index: -9;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(138, 155, 168, 0.12), transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(90, 106, 120, 0.15), transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(120, 120, 130, 0.1), transparent 40%),
+                radial-gradient(circle at 10% 90%, rgba(70, 80, 90, 0.15), transparent 40%);
+            animation: meshMove 20s ease-in-out infinite alternate;
+            filter: blur(50px);
+        }
+        @keyframes meshMove {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(3%, -3%) scale(1.05); }
+            100% { transform: translate(-3%, 3%) scale(1.1); }
+        }
+
+        .aurora-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -8;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0.4;
+        }
+        .aurora-bg::before,
+        .aurora-bg::after {
+            content: '';
+            position: absolute;
+            width: 60vw;
+            height: 60vw;
+            border-radius: 50%;
+            filter: blur(90px);
+            mix-blend-mode: screen;
+        }
+        .aurora-bg::before {
+            background: radial-gradient(circle, rgba(138, 155, 168, 0.35), transparent 70%);
+            top: -20%;
+            left: -10%;
+            animation: aurora1 12s ease-in-out infinite alternate;
+        }
+        .aurora-bg::after {
+            background: radial-gradient(circle, rgba(90, 100, 120, 0.35), transparent 70%);
+            bottom: -20%;
+            right: -10%;
+            animation: aurora2 15s ease-in-out infinite alternate;
+        }
+        @keyframes aurora1 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30%, 20%) scale(1.3); }
+        }
+        @keyframes aurora2 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-30%, -20%) scale(1.4); }
+        }
+
+        .stars-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -7;
+            pointer-events: none;
+            background-image:
+                radial-gradient(1px 1px at 20% 30%, #888, transparent),
+                radial-gradient(1px 1px at 60% 70%, #999, transparent),
+                radial-gradient(1px 1px at 80% 10%, #777, transparent),
+                radial-gradient(1px 1px at 40% 80%, #888, transparent),
+                radial-gradient(2px 2px at 10% 60%, #aaa, transparent),
+                radial-gradient(1px 1px at 90% 40%, #999, transparent),
+                radial-gradient(1px 1px at 30% 20%, #888, transparent),
+                radial-gradient(1px 1px at 70% 90%, #777, transparent),
+                radial-gradient(1px 1px at 15% 85%, #999, transparent),
+                radial-gradient(1px 1px at 55% 15%, #888, transparent),
+                radial-gradient(1px 1px at 95% 75%, #aaa, transparent),
+                radial-gradient(2px 2px at 35% 50%, #999, transparent);
+            background-size: 100% 100%;
+            animation: starsTwinkle 4s ease-in-out infinite alternate;
+        }
+        @keyframes starsTwinkle {
+            from { opacity: 0.3; }
+            to { opacity: 0.85; }
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -6;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(138, 155, 168, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(138, 155, 168, 0.06) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(circle at 50% 40%, #000 20%, transparent 75%);
+            -webkit-mask-image: radial-gradient(circle at 50% 40%, #000 20%, transparent 75%);
+            animation: gridMove 25s linear infinite;
+        }
+        @keyframes gridMove {
+            from { background-position: 0 0; }
+            to { background-position: 50px 50px; }
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0.18;
+            z-index: -5;
+            pointer-events: none;
+        }
+        .blob-1 {
+            width: 400px; height: 400px;
+            background: #8a9ba8;
+            top: 10%; left: 5%;
+            animation: blobMove1 20s ease-in-out infinite;
+        }
+        .blob-2 {
+            width: 350px; height: 350px;
+            background: #5a6a78;
+            bottom: 5%; right: 5%;
+            animation: blobMove2 24s ease-in-out infinite;
+        }
+        .blob-3 {
+            width: 300px; height: 300px;
+            background: #6a7a88;
+            top: 45%; left: 45%;
+            animation: blobMove3 28s ease-in-out infinite;
+        }
+        @keyframes blobMove1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(100px, 50px) scale(1.2); }
+            66% { transform: translate(50px, 150px) scale(0.9); }
+        }
+        @keyframes blobMove2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-120px, -60px) scale(1.1); }
+            66% { transform: translate(-60px, -120px) scale(1.3); }
+        }
+        @keyframes blobMove3 {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            33% { transform: translate(-30%, -70%) scale(1.15); }
+            66% { transform: translate(-70%, -30%) scale(0.95); }
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -4;
+            pointer-events: none;
+        }
+
+        .waves-bg {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100%;
+            z-index: -3;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .waves-bg svg {
+            display: block;
+            width: 100%;
+            height: 200px;
+        }
+        .wave-path {
+            animation: waveMove 8s ease-in-out infinite alternate;
+        }
+        @keyframes waveMove {
+            from { transform: translateX(-25px); }
+            to { transform: translateX(25px); }
+        }
+
+        .noise-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' /%3E%3C/svg%3E");
+            animation: noiseShift 0.5s steps(2) infinite;
+        }
+        @keyframes noiseShift {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(-2%, 2%); }
+            100% { transform: translate(2%, -2%); }
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            width: 0%;
+            background: linear-gradient(90deg, #5a6a78, #8a9ba8, #b0b8c0);
+            z-index: 200;
+            box-shadow: 0 0 8px rgba(138, 155, 168, 0.6);
+            transition: width 0.1s linear;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
             overflow-x: hidden;
+            position: relative;
+            z-index: 1;
         }
 
         header {
             text-align: center;
             margin-bottom: 40px;
+            padding-top: 10px;
         }
 
         h1 {
-            font-size: 3em;
-            background: linear-gradient(45deg, #00f5ff, #ff00ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            font-size: 3.2em;
+            font-weight: 900;
+            color: #e0e0e0;
+            margin-bottom: 14px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            text-shadow:
+                0 0 5px rgba(224, 224, 224, 0.5),
+                0 0 10px rgba(176, 184, 192, 0.5),
+                0 0 20px rgba(138, 155, 168, 0.5),
+                0 0 40px rgba(90, 106, 120, 0.5);
+            animation: neonPulse 3s ease-in-out infinite alternate;
+        }
+        @keyframes neonPulse {
+            from { text-shadow: 0 0 5px rgba(224,224,224,0.5), 0 0 10px rgba(176,184,192,0.5), 0 0 20px rgba(138,155,168,0.5), 0 0 40px rgba(90,106,120,0.5); }
+            to { text-shadow: 0 0 2px rgba(224,224,224,0.3), 0 0 5px rgba(176,184,192,0.3), 0 0 10px rgba(138,155,168,0.3), 0 0 20px rgba(90,106,120,0.3); }
         }
 
         .subtitle {
-            color: #888;
-            font-size: 1.1em;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.05em;
+            font-weight: 400;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            background: linear-gradient(120deg, #555 30%, #d0d0d0 50%, #555 70%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 4s linear infinite;
+        }
+        @keyframes shine {
+            to { background-position: -200% center; }
         }
 
         .main-content {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 320px 1fr;
             gap: 30px;
-            height: calc(100vh - 200px);
-            max-height: calc(100vh - 200px);
+            height: calc(100vh - 220px);
+            max-height: calc(100vh - 220px);
             align-items: start;
         }
 
         .controls {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(0, 245, 255, 0.2);
-            border-radius: 15px;
+            background: rgba(42, 42, 42, 0.85);
+            border: 1px solid #3a3a3a;
+            border-radius: 16px;
             padding: 25px;
-            backdrop-filter: blur(10px);
             overflow-y: auto;
+            position: relative;
+            transition: border-color 0.3s, background 0.3s;
+            scrollbar-width: thin;
+            scrollbar-color: #4a4a4a #2a2a2a;
+            backdrop-filter: blur(10px);
         }
+        .controls:hover { border-color: #4a4a4a; }
+        .controls::-webkit-scrollbar { width: 8px; }
+        .controls::-webkit-scrollbar-track { background: #2a2a2a; border-radius: 8px; }
+        .controls::-webkit-scrollbar-thumb { background: #4a4a4a; border-radius: 8px; }
+        .controls::-webkit-scrollbar-thumb:hover { background: #5a5a5a; }
 
-        .control-group {
-            margin-bottom: 25px;
-        }
+        .control-group { margin-bottom: 22px; }
 
         .control-group label {
             display: block;
-            color: #00f5ff;
+            font-family: 'Orbitron', sans-serif;
+            color: #b0b8c0;
             margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 0.9em;
+            font-weight: 500;
+            font-size: 0.72em;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
         }
 
         .control-group select,
-        .control-group input[type="range"] {
+        .control-group input[type="color"] {
             width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(0, 245, 255, 0.3);
+            font-family: 'Inter', sans-serif;
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
             border-radius: 8px;
-            color: #e0e0e0;
+            color: #d0d0d0;
             padding: 10px;
-            font-size: 0.95em;
+            font-size: 0.9em;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-weight: 400;
         }
 
-        .control-group select {
-            cursor: pointer;
+        .control-group select:focus {
+            outline: none;
+            border-color: #8a9ba8;
+            box-shadow: 0 0 0 3px rgba(138, 155, 168, 0.15);
         }
 
-        .control-group select option {
-            background: #0a0e27;
+        .control-group select { cursor: none; }
+        .control-group select option { background: #1e1e1e; color: #d0d0d0; }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 18px;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            cursor: none;
+            outline: none;
         }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: #3a3a3a;
+            border-radius: 4px;
+            border: none;
+        }
+        input[type="range"]::-moz-range-track {
+            width: 100%;
+            height: 6px;
+            background: #3a3a3a;
+            border-radius: 4px;
+            border: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8a9ba8, #b0b8c0);
+            cursor: none;
+            box-shadow: 0 0 10px rgba(138, 155, 168, 0.6);
+            transition: transform 0.2s;
+            margin-top: -6px;
+            border: none;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8a9ba8, #b0b8c0);
+            cursor: none;
+            border: none;
+            box-shadow: 0 0 10px rgba(138, 155, 168, 0.6);
+            transition: transform 0.2s;
+        }
+        input[type="range"]::-moz-range-thumb:hover { transform: scale(1.15); }
 
         .range-value {
             display: inline-block;
-            background: rgba(0, 245, 255, 0.2);
-            padding: 4px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            background: #333;
+            border: 1px solid #4a4a4a;
+            padding: 3px 10px;
             border-radius: 12px;
-            margin-left: 10px;
-            font-size: 0.85em;
-            color: #00f5ff;
+            margin-left: 8px;
+            font-size: 0.75em;
+            color: #b0b8c0;
+            font-weight: 500;
         }
 
         .checkbox-group {
@@ -111,53 +464,89 @@
             gap: 10px;
             margin-top: 10px;
         }
-
         .checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
+            width: 18px; height: 18px;
+            cursor: none;
+            accent-color: #8a9ba8;
+        }
+        .checkbox-group label {
+            margin: 0;
+            cursor: none;
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 0.85em;
+            color: #c0c0c0;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
         }
 
         .upload-zone {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px dashed rgba(0, 245, 255, 0.4);
-            border-radius: 15px;
+            background: rgba(42, 42, 42, 0.85);
+            border: 2px dashed #4a4a4a;
+            border-radius: 16px;
             padding: 40px 20px;
             text-align: center;
-            cursor: pointer;
+            cursor: none;
             transition: all 0.3s ease;
             margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            backdrop-filter: blur(10px);
         }
-
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            top: var(--y, 50%);
+            left: var(--x, 50%);
+            transform: translate(-50%, -50%);
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(176, 184, 192, 0.15), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .upload-zone:hover::before { opacity: 1; }
         .upload-zone:hover {
-            border-color: #00f5ff;
-            background: rgba(0, 245, 255, 0.1);
-            box-shadow: 0 0 30px rgba(0, 245, 255, 0.2);
+            border-color: #8a9ba8;
+            background: rgba(46, 46, 46, 0.9);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            transform: translateY(-3px);
         }
-
         .upload-zone.dragover {
-            border-color: #ff00ff;
-            background: rgba(255, 0, 255, 0.1);
+            border-color: #b0b8c0;
+            background: rgba(51, 51, 51, 0.95);
+            box-shadow: 0 0 40px rgba(138, 155, 168, 0.3);
+            transform: scale(1.01);
         }
 
         .upload-icon {
             font-size: 3em;
             margin-bottom: 10px;
+            filter: grayscale(1) brightness(1.5);
+            transition: transform 0.3s;
         }
+        .upload-zone:hover .upload-icon { transform: translateY(-5px) scale(1.1); }
 
         .upload-text {
-            font-size: 1.1em;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.05em;
             margin-bottom: 5px;
+            color: #c0c0c0;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
 
         .upload-subtext {
-            color: #888;
-            font-size: 0.85em;
+            font-family: 'Inter', sans-serif;
+            color: #707070;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
-        input[type="file"] {
-            display: none;
-        }
+        input[type="file"] { display: none; }
 
         .buttons {
             display: flex;
@@ -167,22 +556,40 @@
         }
 
         button {
-            background: linear-gradient(45deg, #00f5ff, #0080ff);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #4a5a68, #6a7a88);
+            border: 1px solid #5a6a78;
+            padding: 12px 20px;
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-weight: 500;
+            cursor: none;
+            transition: transform 0.2s ease, box-shadow 0.3s, background 0.3s;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.85em;
+            letter-spacing: 1.5px;
+            font-size: 0.7em;
+            flex: 1;
+            min-width: 120px;
         }
-
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 245, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(138, 155, 168, 0.2);
+            background: linear-gradient(135deg, #5a6a78, #7a8a98);
+        }
+        button:active { transform: translateY(0) scale(0.98); }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(0);
+            animation: rippleAnim 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes rippleAnim {
+            to { transform: scale(4); opacity: 0; }
         }
 
         .main-right {
@@ -194,13 +601,14 @@
             width: 100%;
             min-width: 0;
             overflow: hidden;
+            gap: 20px;
         }
 
         .output-container {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(0, 245, 255, 0.2);
-            border-radius: 15px;
-            padding: 25px;
+            background: rgba(42, 42, 42, 0.85);
+            border: 1px solid #3a3a3a;
+            border-radius: 16px;
+            padding: 20px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -208,85 +616,168 @@
             max-height: 100%;
             min-width: 0;
             overflow: hidden;
+            transition: border-color 0.3s;
+            backdrop-filter: blur(10px);
+            position: relative;
         }
+        .output-container:hover { border-color: #4a4a4a; }
 
         .output-container h3 {
-            color: #00f5ff;
-            margin-bottom: 15px;
+            font-family: 'Orbitron', sans-serif;
+            color: #b0b8c0;
+            margin-bottom: 12px;
             flex-shrink: 0;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+
+        .ascii-wrapper {
+            flex: 1;
+            min-height: 0;
+            min-width: 0;
+            background: #141414;
+            border-radius: 10px;
+            border: 1px solid #2e2e2e;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
         }
 
         #asciiOutput {
-            font-family: 'Courier New', monospace;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
             white-space: pre;
-            overflow: auto;
-            background: #000;
-            padding: 20px;
-            border-radius: 8px;
-            line-height: 1.1;
-            color: #0f0;
+            color: #8a9ba8;
             font-size: 8px;
-            flex: 1;
-            min-height: 0;
+            line-height: 1.05;
+            font-weight: 400;
+            letter-spacing: 0;
+            margin: 0;
+            padding: 0;
+            transition: font-size 0.15s ease;
+            will-change: font-size;
+            overflow: hidden;
+            max-width: 100%;
+            max-height: 100%;
+            text-align: left;
         }
 
-        .video-controls {
-            display: none;
-        }
-
-        .video-controls.active {
-            display: block;
+        .ascii-hint {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            color: #444;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+            opacity: 0.7;
+            z-index: 2;
         }
 
         .loader {
-            border: 3px solid rgba(0, 245, 255, 0.3);
-            border-top: 3px solid #00f5ff;
+            border: 3px solid rgba(138, 155, 168, 0.2);
+            border-top: 3px solid #8a9ba8;
             border-radius: 50%;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
             margin: 20px auto;
             display: none;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
         }
-
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .loader.active { display: block; }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .loader.active {
-            display: block;
-        }
-
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .main-content {
                 grid-template-columns: 1fr;
                 height: auto;
                 max-height: none;
             }
+            .main-right { height: 600px; }
+            h1 { font-size: 2em; letter-spacing: 3px; }
+            body { cursor: auto; padding: 15px; }
+            .cursor-dot, .cursor-ring, .cursor-trail { display: none; }
+            button, .upload-zone, select, input { cursor: pointer; }
+        }
 
-            h1 {
-                font-size: 2em;
+        @media (max-width: 500px) {
+            h1 { font-size: 1.5em; letter-spacing: 2px; }
+            .subtitle { font-size: 0.8em; letter-spacing: 2px; }
+            .buttons { flex-direction: column; }
+            button { width: 100%; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
     </style>
 </head>
 <body>
+    <div class="animated-gradient-bg"></div>
+    <div class="mesh-bg"></div>
+    <div class="aurora-bg"></div>
+    <div class="stars-bg"></div>
+    <div class="grid-bg"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <canvas id="particles-canvas"></canvas>
+    <div class="waves-bg">
+        <svg viewBox="0 0 1440 200" preserveAspectRatio="none">
+            <path class="wave-path" fill="rgba(138, 155, 168, 0.12)" d="M0,100 C360,180 720,20 1080,100 C1260,140 1380,120 1440,100 L1440,200 L0,200 Z"/>
+            <path class="wave-path" fill="rgba(90, 106, 120, 0.1)" style="animation-delay: -2s" d="M0,120 C360,60 720,160 1080,80 C1260,40 1380,100 1440,120 L1440,200 L0,200 Z"/>
+            <path class="wave-path" fill="rgba(70, 80, 90, 0.08)" style="animation-delay: -4s" d="M0,140 C360,100 720,180 1080,120 C1260,80 1380,140 1440,140 L1440,200 L0,200 Z"/>
+        </svg>
+    </div>
+    <div class="noise-bg"></div>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="cursor-dot" id="cursorDot"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
+
     <div class="container">
-        <header>
-            <h1>ASCII ART КОНВЕРТЕР</h1>
-            <p class="subtitle">Преобразуйте изображения и видео в текстовое искусство</p>
+        <header class="reveal">
+            <h1>ASCII Art Конвертер</h1>
+            <p class="subtitle">Преобразуйте изображения в текстовое искусство</p>
         </header>
 
         <div class="main-content">
-            <aside class="controls">
+            <aside class="controls reveal">
                 <div class="control-group">
-                    <label>Ширина (символов): <span class="range-value" id="widthValue">120</span></label>
+                    <label>Ширина: <span class="range-value" id="widthValue">120</span></label>
                     <input type="range" id="widthSlider" min="20" max="300" value="120">
                 </div>
 
                 <div class="control-group">
-                    <label>Набор символов:</label>
+                    <label>Набор символов</label>
                     <select id="charsetSelect">
                         <option value="minimal">Минимальный ( .:-+*#@)</option>
                         <option value="simple">Простой ( .,:;!|/)</option>
@@ -299,8 +790,8 @@
                 </div>
 
                 <div class="control-group">
-                    <label>Цвет ASCII:</label>
-                    <input type="color" id="colorPicker" value="#00ff00" style="width: 100%; height: 40px; cursor: pointer; border-radius: 8px;">
+                    <label>Цвет ASCII</label>
+                    <input type="color" id="colorPicker" value="#8a9ba8" style="height: 40px; padding: 4px; cursor: pointer;">
                 </div>
 
                 <div class="control-group">
@@ -317,31 +808,26 @@
                     </div>
                 </div>
 
-                <div class="control-group video-controls" id="videoControls">
-                    <label>FPS: <span class="range-value" id="fpsValue">10</span></label>
-                    <input type="range" id="fpsSlider" min="1" max="30" value="10">
-                </div>
-
                 <div class="buttons">
-                    <button onclick="convertImage()">Конвертировать</button>
                     <button onclick="downloadTxt()">Скачать TXT</button>
                     <button onclick="downloadImage()">Скачать PNG</button>
                 </div>
             </aside>
 
             <div class="main-right">
-                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-zone reveal" id="uploadZone" onclick="document.getElementById('fileInput').click()">
                     <div class="upload-icon">📁</div>
                     <div class="upload-text">Перетащите файл или кликните для выбора</div>
-                    <div class="upload-subtext">Поддерживаются: JPG, PNG, GIF, MP4, WebM</div>
-                    <input type="file" id="fileInput" accept="image/*,video/*">
+                    <div class="upload-subtext">JPG · PNG · GIF · WebP</div>
+                    <input type="file" id="fileInput" accept="image/*">
                 </div>
 
-                <div class="loader" id="loader"></div>
-
-                <div class="output-container">
+                <div class="output-container reveal">
+                    <div class="loader" id="loader"></div>
                     <h3>Результат</h3>
-                    <div id="asciiOutput">Загрузите изображение или видео для начала работы...</div>
+                    <div class="ascii-wrapper">
+                        <div id="asciiOutput">Загрузите изображение для начала работы...</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -359,26 +845,164 @@
         };
 
         let currentImage = null;
-        let currentVideo = null;
-        let animationFrame = null;
+
+        const cursorDot = document.getElementById('cursorDot');
+        const cursorRing = document.getElementById('cursorRing');
+        let mouseX = 0, mouseY = 0;
+        let ringX = 0, ringY = 0;
+
+        document.addEventListener('mousemove', e => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursorDot.style.left = mouseX + 'px';
+            cursorDot.style.top = mouseY + 'px';
+        });
+
+        function animateRing() {
+            ringX += (mouseX - ringX) * 0.15;
+            ringY += (mouseY - ringY) * 0.15;
+            cursorRing.style.left = ringX + 'px';
+            cursorRing.style.top = ringY + 'px';
+            requestAnimationFrame(animateRing);
+        }
+        animateRing();
+
+        document.querySelectorAll('a, button, .upload-zone, select, input, .checkbox-group label').forEach(el => {
+            el.addEventListener('mouseenter', () => cursorRing.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursorRing.classList.remove('hover'));
+        });
+
+        let lastTrailTime = 0;
+        document.addEventListener('mousemove', e => {
+            const now = Date.now();
+            if (now - lastTrailTime < 50) return;
+            lastTrailTime = now;
+            const trail = document.createElement('div');
+            trail.classList.add('cursor-trail');
+            trail.style.left = e.clientX + 'px';
+            trail.style.top = e.clientY + 'px';
+            document.body.appendChild(trail);
+            setTimeout(() => {
+                trail.style.transition = 'opacity 0.4s, transform 0.4s';
+                trail.style.opacity = '0';
+                trail.style.transform = 'translate(-50%, -50%) scale(0.3)';
+            }, 10);
+            setTimeout(() => trail.remove(), 500);
+        });
+
+        const progressBar = document.getElementById('progressBar');
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+            progressBar.style.width = progress + '%';
+        });
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let canvasW, canvasH;
+
+        function resizeCanvas() {
+            canvasW = canvas.width = window.innerWidth;
+            canvasH = canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvasW;
+                this.y = Math.random() * canvasH;
+                this.vx = (Math.random() - 0.5) * 0.4;
+                this.vy = (Math.random() - 0.5) * 0.4;
+                this.radius = Math.random() * 1.8 + 0.6;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvasW) this.vx *= -1;
+                if (this.y < 0 || this.y > canvasH) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(176, 184, 192, 0.55)';
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+        function connectParticles() {
+            for (let a = 0; a < particles.length; a++) {
+                for (let b = a + 1; b < particles.length; b++) {
+                    const dx = particles[a].x - particles[b].x;
+                    const dy = particles[a].y - particles[b].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 130) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[a].x, particles[a].y);
+                        ctx.lineTo(particles[b].x, particles[b].y);
+                        ctx.strokeStyle = `rgba(176, 184, 192, ${(1 - dist / 130) * 0.4})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvasW, canvasH);
+            particles.forEach(p => { p.update(); p.draw(); });
+            connectParticles();
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        const uploadZone = document.getElementById('uploadZone');
+        uploadZone.addEventListener('mousemove', e => {
+            const rect = uploadZone.getBoundingClientRect();
+            uploadZone.style.setProperty('--x', (e.clientX - rect.left) + 'px');
+            uploadZone.style.setProperty('--y', (e.clientY - rect.top) + 'px');
+        });
+
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.style.width = ripple.style.height = '20px';
+                ripple.style.marginLeft = ripple.style.marginTop = '-10px';
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
 
         document.getElementById('fileInput').addEventListener('change', handleFileSelect);
         document.getElementById('widthSlider').addEventListener('input', e => {
             document.getElementById('widthValue').textContent = e.target.value;
-            if (currentImage || currentVideo) convertImage();
-        });
-        document.getElementById('fpsSlider').addEventListener('input', e => {
-            document.getElementById('fpsValue').textContent = e.target.value;
-            if (currentVideo) convertVideo();
+            if (currentImage) convertImage();
         });
         document.getElementById('charsetSelect').addEventListener('change', () => {
-            if (currentImage || currentVideo) convertImage();
+            if (currentImage) convertImage();
         });
         document.getElementById('invertCheck').addEventListener('change', () => {
-            if (currentImage || currentVideo) convertImage();
+            if (currentImage) convertImage();
         });
         document.getElementById('colorCheck').addEventListener('change', () => {
-            if (currentImage || currentVideo) convertImage();
+            if (currentImage) convertImage();
         });
         document.getElementById('colorPicker').addEventListener('input', e => {
             if (!document.getElementById('colorCheck').checked) {
@@ -386,7 +1010,6 @@
             }
         });
 
-        const uploadZone = document.getElementById('uploadZone');
         uploadZone.addEventListener('dragover', e => {
             e.preventDefault();
             uploadZone.classList.add('dragover');
@@ -398,9 +1021,7 @@
             e.preventDefault();
             uploadZone.classList.remove('dragover');
             const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFile(files[0]);
-            }
+            if (files.length > 0) handleFile(files[0]);
         });
 
         function handleFileSelect(e) {
@@ -409,66 +1030,41 @@
         }
 
         function handleFile(file) {
+            if (!file.type.startsWith('image/')) return;
             const reader = new FileReader();
-            
-            if (file.type.startsWith('image/')) {
-                reader.onload = e => {
-                    const img = new Image();
-                    img.onload = () => {
-                        currentImage = img;
-                        currentVideo = null;
-                        document.getElementById('videoControls').classList.remove('active');
-                        convertImage();
-                    };
-                    img.src = e.target.result;
+            reader.onload = e => {
+                const img = new Image();
+                img.onload = () => {
+                    currentImage = img;
+                    convertImage();
                 };
-                reader.readAsDataURL(file);
-            } else if (file.type.startsWith('video/')) {
-                reader.onload = e => {
-                    const video = document.createElement('video');
-                    video.src = e.target.result;
-                    video.muted = true;
-                    video.onloadeddata = () => {
-                        document.getElementById('videoControls').classList.add('active');
-                        currentVideo = video;
-                        currentImage = null;
-                        video.play();
-                        convertVideo();
-                    };
-                };
-                reader.readAsDataURL(file);
-            }
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
 
         function imageToAscii(img, width, charset, invert, colored) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            
             const aspectRatio = img.height / img.width;
             const height = Math.floor(width * aspectRatio * 0.55);
-            
             canvas.width = width;
             canvas.height = height;
-            
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(img, 0, 0, width, height);
-            
             const imageData = ctx.getImageData(0, 0, width, height);
             let ascii = '';
-            
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
                     const i = (y * width + x) * 4;
                     const r = imageData.data[i];
                     const g = imageData.data[i + 1];
                     const b = imageData.data[i + 2];
-                    
                     const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
                     const finalBrightness = invert ? 255 - brightness : brightness;
                     const charIndex = Math.floor((finalBrightness / 255) * (charset.length - 1));
                     const char = charset[charIndex];
-                    
                     if (colored) {
                         ascii += '<span style="color:rgb(' + r + ',' + g + ',' + b + ')">' + char + '</span>';
                     } else {
@@ -477,49 +1073,63 @@
                 }
                 ascii += '\n';
             }
-            
             return ascii;
         }
 
+        function fitAsciiToContainer() {
+            const output = document.getElementById('asciiOutput');
+            const wrapper = output.parentElement;
+            const text = output.textContent;
+
+            if (!text || text.trim().startsWith('Загрузите')) return;
+
+            const lines = text.split('\n');
+            while (lines.length && lines[lines.length - 1] === '') lines.pop();
+            if (lines.length === 0) return;
+
+            const maxLineLength = Math.max(...lines.map(l => l.length));
+            if (maxLineLength === 0) return;
+
+            const wrapperStyle = getComputedStyle(wrapper);
+            const paddingX = parseFloat(wrapperStyle.paddingLeft) + parseFloat(wrapperStyle.paddingRight);
+            const paddingY = parseFloat(wrapperStyle.paddingTop) + parseFloat(wrapperStyle.paddingBottom);
+            const availableW = wrapper.clientWidth - paddingX;
+            const availableH = wrapper.clientHeight - paddingY;
+
+            if (availableW <= 0 || availableH <= 0) return;
+
+            const charWidthRatio = 0.6;
+            const lineHeightRatio = 1.05;
+
+            const fontSizeByWidth = availableW / (maxLineLength * charWidthRatio);
+            const fontSizeByHeight = availableH / (lines.length * lineHeightRatio);
+
+            let fontSize = Math.min(fontSizeByWidth, fontSizeByHeight);
+            fontSize = Math.max(2, Math.min(fontSize, 16));
+
+            output.style.fontSize = fontSize + 'px';
+        }
+
         function convertImage() {
-            if (!currentImage && !currentVideo) return;
-            
+            if (!currentImage) return;
             document.getElementById('loader').classList.add('active');
-            
             setTimeout(() => {
                 const width = parseInt(document.getElementById('widthSlider').value);
                 const charsetType = document.getElementById('charsetSelect').value;
                 const charset = charSets[charsetType];
                 const invert = document.getElementById('invertCheck').checked;
                 const colored = document.getElementById('colorCheck').checked;
-                
-                const source = currentImage || currentVideo;
-                const ascii = imageToAscii(source, width, charset, invert, colored);
-                
+                const ascii = imageToAscii(currentImage, width, charset, invert, colored);
                 const output = document.getElementById('asciiOutput');
                 if (colored) {
                     output.innerHTML = ascii;
                 } else {
                     output.textContent = ascii;
+                    output.style.color = document.getElementById('colorPicker').value;
                 }
-                
                 document.getElementById('loader').classList.remove('active');
-            }, 100);
-        }
-
-        function convertVideo() {
-            if (!currentVideo) return;
-            
-            const fps = parseInt(document.getElementById('fpsSlider').value);
-            const interval = 1000 / fps;
-            
-            function animate() {
-                convertImage();
-                animationFrame = setTimeout(animate, interval);
-            }
-            
-            if (animationFrame) clearTimeout(animationFrame);
-            animate();
+                requestAnimationFrame(fitAsciiToContainer);
+            }, 50);
         }
 
         function downloadTxt() {
@@ -539,11 +1149,9 @@
             const customColor = document.getElementById('colorPicker').value;
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            
             const fontSize = 10;
             const lineHeight = fontSize * 1.1;
-            ctx.font = fontSize + 'px Courier New';
-            
+            ctx.font = fontSize + 'px "JetBrains Mono", "Courier New", monospace';
             let lines;
             if (colored) {
                 const tempDiv = document.createElement('div');
@@ -552,36 +1160,28 @@
             } else {
                 lines = output.textContent.split('\n');
             }
-            
             let maxWidth = 0;
             lines.forEach(line => {
                 const width = ctx.measureText(line).width;
                 if (width > maxWidth) maxWidth = width;
             });
-            
             canvas.width = maxWidth + 20;
             canvas.height = lines.length * lineHeight + 20;
-            
-            ctx.fillStyle = '#000';
+            ctx.fillStyle = '#141414';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.font = fontSize + 'px Courier New';
-            
+            ctx.font = fontSize + 'px "JetBrains Mono", "Courier New", monospace';
             if (colored) {
                 const spans = output.querySelectorAll('span');
                 let charIndex = 0;
                 let x = 10;
                 let y = lineHeight;
-                
                 spans.forEach(span => {
                     const char = span.textContent;
                     const color = span.style.color;
-                    
                     if (char === '\n' || (charIndex > 0 && lines[0] && charIndex % lines[0].length === 0)) {
                         y += lineHeight;
                         x = 10;
                     }
-                    
                     ctx.fillStyle = color || customColor;
                     ctx.fillText(char, x, y);
                     x += ctx.measureText(char).width;
@@ -593,7 +1193,6 @@
                     ctx.fillText(line, 10, (i + 1) * lineHeight);
                 });
             }
-            
             canvas.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -603,6 +1202,27 @@
                 URL.revokeObjectURL(url);
             });
         }
+
+        const asciiOutputEl = document.getElementById('asciiOutput');
+
+        asciiOutputEl.parentElement.addEventListener('wheel', (e) => {
+            if (!e.ctrlKey && !e.metaKey) return;
+            e.preventDefault();
+            const currentSize = parseFloat(getComputedStyle(asciiOutputEl).fontSize);
+            const delta = e.deltaY > 0 ? -1 : 1;
+            const newSize = Math.max(2, Math.min(currentSize + delta, 40));
+            asciiOutputEl.style.fontSize = newSize + 'px';
+        }, { passive: false });
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(fitAsciiToContainer, 100);
+        });
+
+        document.getElementById('widthSlider').addEventListener('input', () => {
+            setTimeout(fitAsciiToContainer, 100);
+        });
     </script>
 </body>
 </html>
